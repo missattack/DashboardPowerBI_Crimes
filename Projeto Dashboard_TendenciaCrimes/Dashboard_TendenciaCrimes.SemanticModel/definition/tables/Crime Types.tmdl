@@ -1,0 +1,36 @@
+table 'Crime Types'
+	lineageTag: 6fc52ab7-d83d-4fb1-a9cd-01977d6aee96
+
+	column 'Crime Tipo ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 38be5fd0-20e6-445b-adc8-70d06f2431e6
+		summarizeBy: none
+		sourceColumn: Crime Tipo ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Crime
+		dataType: string
+		lineageTag: 5d9bb9ec-ae3c-493d-be2e-cffd004cb715
+		summarizeBy: none
+		sourceColumn: Crime
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Crime Types' = m
+		mode: import
+		source =
+				let
+				    Fonte = Excel.Workbook(File.Contents("C:\POWER BI\Other Data.xlsx"), null, true),
+				    #"Crime Types_Sheet" = Fonte{[Item="Crime Types",Kind="Sheet"]}[Data],
+				    #"Cabeçalhos Promovidos" = Table.PromoteHeaders(#"Crime Types_Sheet", [PromoteAllScalars=true]),
+				    #"Tipo Alterado" = Table.TransformColumnTypes(#"Cabeçalhos Promovidos",{{"Crime Type ID", Int64.Type}, {"Crime", type text}}),
+				    #"Colunas Renomeadas" = Table.RenameColumns(#"Tipo Alterado",{{"Crime Type ID", "Crime Tipo ID"}})
+				in
+				    #"Colunas Renomeadas"
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+

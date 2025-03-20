@@ -1,0 +1,8 @@
+relationship AutoDetected_e9670b95-5141-4318-bdd6-e3ae8ed118f0
+	fromColumn: 'Crimes Data'.'Crime Tipo ID'
+	toColumn: 'Crime Types'.'Crime Tipo ID'
+
+relationship 6d2d9edd-add7-c19d-85bb-4477dae115d0
+	fromColumn: 'Crimes Data'.'Data Crime'
+	toColumn: TabelaDatas.Date
+

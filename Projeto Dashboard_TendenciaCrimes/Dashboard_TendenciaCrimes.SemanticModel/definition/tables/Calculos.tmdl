@@ -1,0 +1,145 @@
+table Calculos
+	lineageTag: e7dd65f8-d43b-459e-a494-0a0ce9367c85
+
+	measure 'Total Crimes' = COUNTROWS('Crimes Data')
+		formatString: #,0
+		lineageTag: a4975f04-865d-4de2-b215-0781b5ebea27
+
+	measure 'Lebel (Ano)' = ```
+			
+			VAR _TotalCrimesAnoAnterior =
+			    CALCULATE(
+			        [Total Crimes],
+			        SAMEPERIODLASTYEAR(TabelaDatas[Date])
+			    )
+			VAR _DifTotaCrimesAntxAtual =
+			    if(_TotalCrimesAnoAnterior<>BLANK(),
+			        [Total Crimes] - _TotalCrimesAnoAnterior,
+			        BLANK()
+			    )
+			
+			    RETURN
+			
+			        SWITCH(TRUE(), 
+			        _DifTotaCrimesAntxAtual=0, _DifTotaCrimesAntxAtual&"-",
+			        _DifTotaCrimesAntxAtual>=1, "▲ "&_DifTotaCrimesAntxAtual,
+			        _DifTotaCrimesAntxAtual<1, "▼ "&_DifTotaCrimesAntxAtual
+			    )
+			```
+		lineageTag: 08ead5ca-e0c7-4495-b4c8-7105d6bc9845
+
+	measure 'Medida Brancos (Ano)' = ```
+			200 
+			```
+		formatString: 0
+		lineageTag: 692db1a0-3f60-458a-83cb-51f272a81335
+
+	measure 'Cor (Ano)' = ```
+			
+			VAR _TotalCrimesAnoAnterior =
+			    CALCULATE(
+			        [Total Crimes],
+			        SAMEPERIODLASTYEAR(TabelaDatas[Date])
+			    )
+			VAR _DifTotaCrimesAntxAtual =
+			    if(_TotalCrimesAnoAnterior<>BLANK(),
+			        [Total Crimes] - _TotalCrimesAnoAnterior,
+			        BLANK()
+			    )
+			
+			    RETURN
+			
+			        SWITCH(TRUE(), 
+			        _DifTotaCrimesAntxAtual=0, "Gray",
+			        _DifTotaCrimesAntxAtual>=1, "Green",
+			        _DifTotaCrimesAntxAtual<1, "Red"
+			    )
+			```
+		lineageTag: 0a035f2d-670c-4a16-a922-eb3eaa3ac792
+
+	measure 'Medida Brancos (Mes)' = ```
+			
+			 MAXX(
+			    ALL(
+			        TabelaDatas[Mes]),
+			        [Total Crimes]/20
+			 )
+			```
+		formatString: 0
+		lineageTag: 37d8971b-f298-4b4c-b28a-ba1fb4da2074
+
+	measure 'Crimes MesAnterior' = ```
+			
+			 CALCULATE(
+			    [Total Crimes],
+			    DATEADD(TabelaDatas[Date], -1,MONTH)
+			 )
+			```
+		formatString: 0
+		lineageTag: e8665c9a-ef0f-4ed2-9dfa-f1c0b1a06d34
+
+	measure 'Lebel (Mes)' = ```
+			
+			    VAR _PctEntreMeses =
+			        if(
+			        DIVIDE(
+			            [Total Crimes] - [Crimes MesAnterior],
+			            [Crimes MesAnterior]
+			        ) <> BLANK(),
+			        DIVIDE(
+			            [Total Crimes] - [Crimes MesAnterior],
+			            [Crimes MesAnterior]
+			        ),BLANK()
+			        )
+			    VAR _PctNegativo = -0.01
+			        RETURN
+			            SWITCH(
+			                TRUE(),
+			                _PctEntreMeses = 0,_PctEntreMeses&"-",
+			                _PctEntreMeses>=_PctNegativo,"▲ "&FORMAT(_PctEntreMeses,"0%"),
+			                _PctEntreMeses<_PctNegativo,"▼ "&FORMAT(_PctEntreMeses,"0%")
+			            )
+			
+			```
+		lineageTag: aeeca710-1260-4a8e-b43b-1ffdc5ebe37f
+
+	measure 'Cor (Mes)' = ```
+			
+			    VAR _PctEntreMeses =
+			        if(
+			        DIVIDE(
+			            [Total Crimes] - [Crimes MesAnterior],
+			            [Crimes MesAnterior]
+			        ) <> BLANK(),
+			        DIVIDE(
+			            [Total Crimes] - [Crimes MesAnterior],
+			            [Crimes MesAnterior]
+			        ),BLANK()
+			        )
+			    VAR _PctNegativo = -0.01
+			        RETURN
+			            SWITCH(
+			                TRUE(),
+			                _PctEntreMeses = 0,"Gray",
+			                _PctEntreMeses>=_PctNegativo,"Green",
+			                _PctEntreMeses<_PctNegativo,"Red")
+			            
+			
+			```
+		lineageTag: 1c3ba50e-3aaa-4940-9ba2-fbf6d4a90eee
+
+	column Value
+		formatString: 0
+		lineageTag: e90291c1-9899-43bd-b704-8dd95cbc22d9
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Value]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Calculos = calculated
+		mode: import
+		source = {1}
+
+	annotation PBI_Id = 316ed88fad0e445fb99a642f009418b3
+

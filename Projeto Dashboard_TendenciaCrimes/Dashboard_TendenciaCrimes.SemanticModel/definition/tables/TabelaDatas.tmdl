@@ -1,0 +1,81 @@
+table TabelaDatas
+	lineageTag: f536e315-9187-4e84-b4eb-e1207a4fe32e
+	dataCategory: Time
+
+	column Date
+		isKey
+		formatString: Short Date
+		lineageTag: 60001406-c319-4689-8758-64e3b351cdbc
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Date]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ano
+		formatString: 0
+		lineageTag: 8336f7cb-f8a0-4f28-be07-7b1f9296d1f8
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Ano]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Mes
+		lineageTag: d6b0495c-dee7-42fe-9f7a-b39649ea6d25
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Mes]
+		sortByColumn: NroMes
+
+		annotation SummarizationSetBy = Automatic
+
+	column NroMes
+		formatString: 0
+		lineageTag: 4038bafc-cc5a-4b4c-ba7c-3279050f3a57
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [NroMes]
+
+		annotation SummarizationSetBy = Automatic
+
+	column DiaSemana
+		lineageTag: 49ca0677-a3ca-4b99-8f34-31f5e0313677
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [DiaSemana]
+		sortByColumn: NroDiaSemana
+
+		annotation SummarizationSetBy = Automatic
+
+	column NroDiaSemana
+		formatString: 0
+		lineageTag: 21a5b875-3fe0-4a92-bceb-2c9f0252508e
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [NroDiaSemana]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition TabelaDatas = calculated
+		mode: import
+		source =
+				
+				VAR _MenorData = YEAR(MIN('Crimes Data'[Data Crime]))
+				VAR _MaiorData = YEAR(MAX('Crimes Data'[Data Crime]))
+				RETURN
+				ADDCOLUMNS(
+				    FILTER(
+				    CALENDARAUTO(),
+				    YEAR([Date]) >= _MenorData &&
+				    YEAR([Date]) <= _MaiorData
+				    ),
+				    "Ano", YEAR([Date]),
+				    "Mes", FORMAT([Date],"mmm"),
+				    "NroMes", MONTH([Date]),
+				    "DiaSemana", FORMAT([Date],"ddd"),
+				    "NroDiaSemana", WEEKDAY([Date])
+				    )
+
+	annotation PBI_Id = e02eed0fda25471eae90eca996c27751
+

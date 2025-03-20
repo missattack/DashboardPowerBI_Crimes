@@ -1,0 +1,109 @@
+table 'Crimes Data'
+	lineageTag: ba180935-8683-4c26-8eac-d9bdb8746583
+
+	column 'Crime ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: a83453e7-48c0-49e8-bfe8-4d8f6f875d7c
+		summarizeBy: count
+		sourceColumn: Crime ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Pais
+		dataType: string
+		lineageTag: c16e444b-c72f-40a8-9037-e56a70659afe
+		summarizeBy: none
+		sourceColumn: Pais
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Crime Tipo ID'
+		dataType: int64
+		formatString: 0
+		lineageTag: 3562e1a6-44ba-4bb1-930c-1023d99ef874
+		summarizeBy: none
+		sourceColumn: Crime Tipo ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Resolvido
+		dataType: int64
+		formatString: 0
+		lineageTag: 8887b768-ed33-4d70-a108-48e5a19aefb8
+		summarizeBy: sum
+		sourceColumn: Resolvido
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Pessoas envolvidas'
+		dataType: int64
+		formatString: 0
+		lineageTag: a4a8449c-fc62-49b5-8148-00d9c5698119
+		summarizeBy: sum
+		sourceColumn: Pessoas envolvidas
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Hora Crime'
+		dataType: dateTime
+		formatString: Long Time
+		lineageTag: 58eb1a1d-1214-49da-8c59-e5f82441a9cc
+		summarizeBy: none
+		sourceColumn: Hora Crime
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Time
+
+	column 'Data Crime'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: d75f5904-1290-4f6f-ba0f-f985963ea307
+		summarizeBy: none
+		sourceColumn: Data Crime
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Hora Grupo' =
+			SWITCH(
+			    True(),
+			    MOD(HOUR('Crimes Data'[Hora Crime]),24)>= 0 && MOD(HOUR('Crimes Data'[Hora Crime]),24)<= 3, "00:00 - 02:59",
+			    MOD(HOUR('Crimes Data'[Hora Crime]),24)>= 3 && MOD(HOUR('Crimes Data'[Hora Crime]),24)<= 6, "03:00 - 05:59",
+			    MOD(HOUR('Crimes Data'[Hora Crime]),24)>= 6 && MOD(HOUR('Crimes Data'[Hora Crime]),24)<= 9, "06:00 - 09:59",
+			    MOD(HOUR('Crimes Data'[Hora Crime]),24)>= 9 && MOD(HOUR('Crimes Data'[Hora Crime]),24)<= 12, "09:00 - 11:59",
+			    MOD(HOUR('Crimes Data'[Hora Crime]),24)>= 12 && MOD(HOUR('Crimes Data'[Hora Crime]),24)<= 15, "12:00 - 14:59",
+			    MOD(HOUR('Crimes Data'[Hora Crime]),24)>= 15 && MOD(HOUR('Crimes Data'[Hora Crime]),24)<= 18, "15:00 - 17:59",
+			    MOD(HOUR('Crimes Data'[Hora Crime]),24)>= 18 && MOD(HOUR('Crimes Data'[Hora Crime]),24)<= 21, "18:00 - 20:59",
+			    MOD(HOUR('Crimes Data'[Hora Crime]),24)>= 21 && MOD(HOUR('Crimes Data'[Hora Crime]),24)<= 24, "21:00 - 23:59"
+			    )
+		lineageTag: 72b51f4a-a763-4510-8b6e-491656dab707
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Crimes Data' = m
+		mode: import
+		source =
+				let
+				    Fonte = Excel.Workbook(File.Contents("C:\POWER BI\Crimes Data.xlsx"), null, true),
+				    Data_Sheet = Fonte{[Item="Data",Kind="Sheet"]}[Data],
+				    #"Cabeçalhos Promovidos" = Table.PromoteHeaders(Data_Sheet, [PromoteAllScalars=true]),
+				    #"Tipo Alterado" = Table.TransformColumnTypes(#"Cabeçalhos Promovidos",{{"Crime ID", Int64.Type}, {"Crime Date", type date}, {"Country", type text}, {"Longitude", type text}, {"Crime Type ID", Int64.Type}, {"Resolved", Int64.Type}, {"People Involved", Int64.Type}, {"Crime DateTime", type datetime}}),
+				    #"Colunas Reordenadas" = Table.ReorderColumns(#"Tipo Alterado",{"Crime ID", "Country", "Longitude", "Crime Type ID", "Resolved", "People Involved", "Crime DateTime", "Crime Date"}),
+				    #"Colunas Removidas" = Table.RemoveColumns(#"Colunas Reordenadas",{"Longitude"}),
+				    #"Dividir Coluna por Delimitador" = Table.SplitColumn(Table.TransformColumnTypes(#"Colunas Removidas", {{"Crime DateTime", type text}}, "pt-BR"), "Crime DateTime", Splitter.SplitTextByDelimiter(" ", QuoteStyle.Csv), {"Crime DateTime.1", "Crime DateTime.2"}),
+				    #"Tipo Alterado1" = Table.TransformColumnTypes(#"Dividir Coluna por Delimitador",{{"Crime DateTime.1", type date}, {"Crime DateTime.2", type time}}),
+				    #"Colunas Removidas1" = Table.RemoveColumns(#"Tipo Alterado1",{"Crime DateTime.1"}),
+				    #"Colunas Renomeadas" = Table.RenameColumns(#"Colunas Removidas1",{{"Crime Date", "Data Crime"}, {"Crime DateTime.2", "Hora Crime"}, {"People Involved", "Pessoas envolvidas"}, {"Resolved", "Resolvido"}, {"Crime Type ID", "Crime Tipo ID"}, {"Country", "Pais"}})
+				in
+				    #"Colunas Renomeadas"
+
+	changedProperty = Name
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+
